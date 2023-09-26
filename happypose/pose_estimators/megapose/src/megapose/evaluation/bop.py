@@ -337,7 +337,7 @@ def get_sam_detections(data, df_all_dets, df_targets, dt_det):
     #################
     lst_df_target = [] 
     nb_targets = len(df_targets_scene_img)
-    MARGIN = 10
+    MARGIN = 2
     for it in range(nb_targets):
         target = df_targets_scene_img.iloc[it]
         n_best = target.inst_count + MARGIN
