@@ -50,28 +50,28 @@ DUMMY_EVAL_SCRIPT_PATH = BOP_TOOLKIT_DIR / "scripts/eval_bop19_dummy.py"
 ##################################
 import os
 
-# # Official Task 4 detections (CNOS fastSAM)
-# EXTERNAL_DETECTIONS_FILES = {
-#     "ycbv": 'cnos-fastsam_ycbv-test_f4f2127c-6f59-447c-95b3-28e1e591f1a1.json', 
-#     "lmo": 'cnos-fastsam_lmo-test_3cb298ea-e2eb-4713-ae9e-5a7134c5da0f.json', 
-#     "tless": 'cnos-fastsam_tless-test_8ca61cb0-4472-4f11-bce7-1362a12d396f.json', 
-#     "tudl": 'cnos-fastsam_tudl-test_c48a2a95-1b41-4a51-9920-a667cb3d7149.json', 
-#     "icbin": 'cnos-fastsam_icbin-test_f21a9faf-7ef2-4325-885f-f4b6460f4432.json', 
-#     "itodd": 'cnos-fastsam_itodd-test_df32d45b-301c-4fc9-8769-797904dd9325.json', 
-#     "hb": 'cnos-fastsam_hb-test_db836947-020a-45bd-8ec5-c95560b68011.json', 
-# }
-
-
-# Official Task 1 detections (gdrnppdet-pbrreal)
+# Official Task 4 detections (CNOS fastSAM)
 EXTERNAL_DETECTIONS_FILES = {
-    "ycbv": 'gdrnppdet-pbrreal_ycbv-test_abe6c5f1-cb26-4bbd-addc-bb76dd722a96.json', 
-    "lmo": 'gdrnppdet-pbrreal_lmo-test_202a2f15-cbd0-49df-90de-650428c6d157.json', 
-    "tless": 'gdrnppdet-pbrreal_tless-test_e112ecb4-7f56-4107-8a21-945bc7661267.json', 
-    "tudl": 'gdrnppdet-pbrreal_tudl-test_66fd26f1-bebf-493b-a42a-d71e8d10c479.json', 
-    "icbin": 'gdrnppdet-pbrreal_icbin-test_a46668ed-f76b-40ca-9954-708b198c2ab0.json', 
-    "itodd": 'gdrnppdet-pbrreal_itodd-test_9559c160-9507-4d09-94a5-ef0d6e8f22ce.json', 
-    "hb": 'gdrnppdet-pbrreal_hb-test_94485f5a-98ea-48f1-9472-06f4ceecad41.json', 
+    "ycbv": 'cnos-fastsam_ycbv-test_f4f2127c-6f59-447c-95b3-28e1e591f1a1.json', 
+    "lmo": 'cnos-fastsam_lmo-test_3cb298ea-e2eb-4713-ae9e-5a7134c5da0f.json', 
+    "tless": 'cnos-fastsam_tless-test_8ca61cb0-4472-4f11-bce7-1362a12d396f.json', 
+    "tudl": 'cnos-fastsam_tudl-test_c48a2a95-1b41-4a51-9920-a667cb3d7149.json', 
+    "icbin": 'cnos-fastsam_icbin-test_f21a9faf-7ef2-4325-885f-f4b6460f4432.json', 
+    "itodd": 'cnos-fastsam_itodd-test_df32d45b-301c-4fc9-8769-797904dd9325.json', 
+    "hb": 'cnos-fastsam_hb-test_db836947-020a-45bd-8ec5-c95560b68011.json', 
 }
+
+
+# # Official Task 1 detections (gdrnppdet-pbrreal)
+# EXTERNAL_DETECTIONS_FILES = {
+#     "ycbv": 'gdrnppdet-pbrreal_ycbv-test_abe6c5f1-cb26-4bbd-addc-bb76dd722a96.json', 
+#     "lmo": 'gdrnppdet-pbrreal_lmo-test_202a2f15-cbd0-49df-90de-650428c6d157.json', 
+#     "tless": 'gdrnppdet-pbrreal_tless-test_e112ecb4-7f56-4107-8a21-945bc7661267.json', 
+#     "tudl": 'gdrnppdet-pbrreal_tudl-test_66fd26f1-bebf-493b-a42a-d71e8d10c479.json', 
+#     "icbin": 'gdrnppdet-pbrreal_icbin-test_a46668ed-f76b-40ca-9954-708b198c2ab0.json', 
+#     "itodd": 'gdrnppdet-pbrreal_itodd-test_9559c160-9507-4d09-94a5-ef0d6e8f22ce.json', 
+#     "hb": 'gdrnppdet-pbrreal_hb-test_94485f5a-98ea-48f1-9472-06f4ceecad41.json', 
+# }
 
 
 EXTERNAL_DETECTIONS_DIR = os.environ.get('EXTERNAL_DETECTIONS_DIR')
@@ -308,30 +308,50 @@ def get_sam_detections(data, df_all_dets, df_targets, dt_det):
 
     dt_det += df_dets_scene_img.time.iloc[0]
 
+    # #################
+    # # Filter detections based on 2 criteria
+    # # - 1) Localization 6D task: we can assume that we know which object category and how many instances 
+    # # are present in the image
+    # __import__("IPython").embed()
+    # obj_ids = df_targets_scene_img.obj_id.to_list()
+    # df_dets_scene_img_obj_filt = df_dets_scene_img[df_dets_scene_img['category_id'].isin(obj_ids)]
+    # # In case none of the detections category ids match the ones present in the scene,
+    # # keep only one detection to avoid downstream error
+    # if len(df_dets_scene_img_obj_filt) > 0:
+    #     df_dets_scene_img = df_dets_scene_img_obj_filt
+    # else:
+    #     df_dets_scene_img = df_dets_scene_img[:1]
+
+    # # - 2) Retain detections with best cnos scores (kind of redundant with finalized 1) )
+    # # based on expected number of objects in the scene (from groundtruth)
+    # nb_gt_dets = df_targets_scene_img.inst_count.sum()
+    
+    # # TODO: put that as a parameter somewhere?
+    # MARGIN = 10  # if 0, some images will have no detections
+    # K_MULT = 1
+    # nb_det = K_MULT*nb_gt_dets + MARGIN
+    # df_dets_scene_img = df_dets_scene_img.sort_values('score', ascending=False).head(nb_det)
+    # #################
+
+
     #################
-    # Filter detections based on 2 criteria
-    # - 1) Localization 6D task: we can assume that we know which object category and how many instances 
-    # are present in the image
-    obj_ids = df_targets_scene_img.obj_id.to_list()
-    df_dets_scene_img_obj_filt = df_dets_scene_img[df_dets_scene_img['category_id'].isin(obj_ids)]
-    # In case none of the detections category ids match the ones present in the scene,
-    # keep only one detection to avoid downstream error
-    if len(df_dets_scene_img_obj_filt) > 0:
-        df_dets_scene_img = df_dets_scene_img_obj_filt
+    lst_df_target = [] 
+    nb_targets = len(df_targets_scene_img)
+    MARGIN = 10
+    for it in range(nb_targets):
+        target = df_targets_scene_img.iloc[it]
+        n_best = target.inst_count + MARGIN
+        df_filt_target = df_dets_scene_img[df_dets_scene_img['category_id'] == target.obj_id].sort_values('score', ascending=False)[:n_best]
+        lst_df_target.append(df_filt_target)
+
+    df_dets_scene_img_tmp = pd.concat(lst_df_target)
+
+    # if missing dets, keep only one detection to avoid downstream error
+    if len(df_dets_scene_img_tmp) > 0:
+        df_dets_scene_img = df_dets_scene_img_tmp
     else:
         df_dets_scene_img = df_dets_scene_img[:1]
 
-    # TODO: retain only corresponding inst_count number for each detection category_id  
-
-    # - 2) Retain detections with best cnos scores (kind of redundant with finalized 1) )
-    # based on expected number of objects in the scene (from groundtruth)
-    nb_gt_dets = df_targets_scene_img.inst_count.sum()
-    
-    # TODO: put that as a parameter somewhere?
-    MARGIN = 1  # if 0, some images will have no detections
-    K_MULT = 1
-    nb_det = K_MULT*nb_gt_dets + MARGIN
-    df_dets_scene_img = df_dets_scene_img.sort_values('score', ascending=False).head(nb_det)
     #################
 
     lst_dets_scene_img = df_dets_scene_img.to_dict('records')
