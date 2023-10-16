@@ -52,7 +52,7 @@ from happypose.toolbox.visualization.utils import make_contour_overlay
 
 
 
-
+# python -m happypose.pose_estimators.cosypose.cosypose.scripts.run_inference_on_example barbecue-sauce --run-inference --vis-outputs
 
 
 logger = get_logger(__name__)
@@ -64,8 +64,19 @@ def load_observation(
     load_depth: bool = False,
 ) -> Tuple[np.ndarray, Union[None, np.ndarray], CameraData]:
     camera_data = CameraData.from_json((example_dir / "camera_data.json").read_text())
+    
+    from_cam = False
 
-    rgb = np.array(Image.open(example_dir / "image_rgb.png"), dtype=np.uint8)
+    if from_cam:
+        cam = cv2.VideoCapture(2)
+        res, img = cam.read()
+        print(res)
+        rgb = np.array(Image.open(img), dtype=np.uint8)
+        cv2.imshow(rgb)
+        cam.release()
+    else:
+        rgb = np.array(Image.open(example_dir / "test_tless.png"), dtype=np.uint8)
+
     assert rgb.shape[:2] == camera_data.resolution
 
     depth = None
@@ -207,7 +218,7 @@ if __name__ == "__main__":
     #    make_detections_visualization(example_dir)
 
     if args.run_inference:
-        run_inference(example_dir, args.model, dataset_to_use, args.example_name, args.render)
-
+        poses, infos = run_inference(example_dir, args.model, dataset_to_use, args.example_name, args.render)
+        print(poses)
     #if args.vis_outputs:
     #    make_output_visualization(example_dir)
